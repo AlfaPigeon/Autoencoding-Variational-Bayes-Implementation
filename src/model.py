@@ -22,6 +22,8 @@ class VAE(nn.Module):
         self.fc_logvar = nn.Linear(self.flattened_dim, latent_dim)
         self.fc_z = nn.Linear(latent_dim, self.flattened_dim)
         self.trans_conv = nn.ConvTranspose2d(hidden_dim, input_dim1, kernel_size=kernel_size)
+        self.fc_decode1 = nn.Linear(self.flattened_dim, self.hidden_dim)
+        self.fc_decode2 = nn.Linear(self.hidden_dim, self.flattened_dim)
 
     def reparameterize(self, _mean, _logvar):
         std = torch.exp(0.5*_logvar)
@@ -31,10 +33,15 @@ class VAE(nn.Module):
     def decode(self, z):
 
         hidden = torch.relu(self.fc_z(z))
-        hidden = hidden.view(-1, self.hidden_dim, self.conv_out_size, self.conv_out_size)
+        
         # Reshape into 4d        
 
         #recon = recon.view(-1, self.input_dim1, self.input_dim2, self.input_dim2)
+
+        hidden = torch.relu(self.fc_decode1(hidden))
+        hidden = torch.relu(self.fc_decode2(hidden))
+
+        hidden = hidden.view(-1, self.hidden_dim, self.conv_out_size, self.conv_out_size)
 
         recon = self.trans_conv(hidden)
         recon = torch.sigmoid(recon)

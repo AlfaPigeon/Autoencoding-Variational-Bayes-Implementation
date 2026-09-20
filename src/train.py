@@ -14,14 +14,14 @@ print(f"Using device: {device}")
 
 epochs = 10
 kernel_size = 32
-hidden_layer = 128
-latent_dim = 256
+hidden_layer = 64
+latent_dim = 64
 batch_size = 32
-kl_weight = 0.0005
+kl_weight = 0.01
 
 # Loading Data
 
-train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*50, test_size=batch_size*10, batch_size=batch_size)
+train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*10, test_size=batch_size*2, batch_size=batch_size)
 
 # Train set, Test set split
 
@@ -35,7 +35,7 @@ train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*50
 
 vae_model = VAE(3, 128, hidden_dim=hidden_layer, kernel_size=kernel_size, latent_dim=latent_dim)
 
-optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-5)
+optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-4)
 
 loss_func = torch.nn.MSELoss()
 
