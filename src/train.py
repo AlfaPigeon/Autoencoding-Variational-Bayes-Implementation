@@ -2,24 +2,39 @@ import torch
 from utils import KL
 from model import VAE
 from data import GetFaceDataLoader
+from torchinfo import summary
+
 # Params
 
 epochs = 5
 kernel_size = 32
 hidden_layer = 32
-latent_dim = 32
+latent_dim = 128
 batch_size = 32
 
 
-data_loader = GetFaceDataLoader(batch_size=batch_size)
+#data_loader = GetFaceDataLoader(batch_size=batch_size)
 
 
-vae_model = VAE(128, kernel_size=kernel_size, latent_dim=latent_dim, hidden_layer=hidden_layer)
+# [32, 3, 128, 128]
+
+
+vae_model = VAE(3, 128, hidden_dim=hidden_layer, kernel_size=kernel_size, latent_dim=latent_dim)
+
+
+
+
 
 optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-3)
 
 loss_func = torch.nn.MSELoss()
 
+print(vae_model)
+summary(vae_model, input_size=(batch_size, 3, 128, 128))
+
+exit()
+
+print("Starting training...")
 
 for epoch in range(epochs):
     for batch in data_loader:
