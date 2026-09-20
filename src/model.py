@@ -4,15 +4,15 @@ import torch.nn as nn
 
 class VAE(nn.Module):
 
-    def __init__(self, input_dim1, input_dim2, hidden_dim=32, latent_dim=32, kernel_size=4):
+    def __init__(self, input_dim1=3, input_dim2=128, hidden_dim=32, latent_dim=128, kernel_size=4):
         super(VAE, self).__init__()
 
         self.input_dim1 = input_dim1
         self.input_dim2 = input_dim2
 
         # Shape Calculatios===
-        self.conv_out_size = ((input_dim2 - kernel_size) // 2) + 1
-        self.flattened_dim = hidden_dim * self.conv_out_size * self.conv_out_size
+        self.conv_out_size = input_dim2 - kernel_size + 1
+        self.flattened_dim = self.conv_out_size * self.conv_out_size * hidden_dim 
         self.hidden_dim = hidden_dim
         # ====================
 
@@ -22,7 +22,7 @@ class VAE(nn.Module):
         self.flatten = nn.Flatten()
         self.fc_mean = nn.Linear(self.flattened_dim, latent_dim)
         self.fc_logvar = nn.Linear(self.flattened_dim, latent_dim)
-        self.fc_z = nn.Linear(latent_dim, input_dim1)
+        self.fc_z = nn.Linear(latent_dim, input_dim1*input_dim2*input_dim2)
 
     def reparameterize(self, _mean, _logvar):
         std = torch.exp(0.5*_logvar)
@@ -34,6 +34,10 @@ class VAE(nn.Module):
             self.fc_z(z)
         )
         # Reshape into 4d
+
+        print(recon.shape)
+        
+
         recon = recon.view(-1, self.input_dim1, self.input_dim2, self.input_dim2)
         return recon
         
