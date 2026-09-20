@@ -1,9 +1,8 @@
 import torch
-from utils import KL
+from utils import KL, PlotReconstructions
 from model import VAE
-from data import GetFaceDataLoader
+from data import GetFaceDataLoader, GetFaceTrainTestDataLoaders
 from torchinfo import summary
-import matplotlib.pyplot as plt
 
 
 # Device
@@ -13,16 +12,21 @@ print(f"Using device: {device}")
 
 # Params
 
-epochs = 2
+epochs = 10
 kernel_size = 16
-hidden_layer = 32
+hidden_layer = 128
 latent_dim = 128
 batch_size = 32
 
 
 # Loading Data
 
-data_loader = GetFaceDataLoader(batch_size=batch_size)
+train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*100, test_size=batch_size*20, batch_size=batch_size)
+
+# Train set, Test set split
+
+
+
 # [32, 3, 128, 128]
 
 
@@ -42,7 +46,7 @@ print("Starting training...")
 
 for epoch in range(epochs):
     batch_index = 0
-    for batch in data_loader:
+    for batch in train_loader:
         optimizer.zero_grad()
         recon_batch, _mean, _logvar = vae_model(batch)
         loss = loss_func(recon_batch, batch) + KL(_mean, _logvar)
@@ -50,7 +54,24 @@ for epoch in range(epochs):
         optimizer.step()
 
         batch_index+=1
-        print(f"Batch {batch_size+1}/{batch_index} completed. Loss: {loss}")
+
+        print(f"Batch {batch_index+1}/{len(train_loader)} completed. Loss: {loss}")
+
+    # Evaluate on test set
+    with torch.no_grad():
+        test_loss = 0
+        for batch in test_loader:
+            recon_batch, _mean, _logvar = vae_model(batch)
+            test_loss += loss_func(recon_batch, batch) + KL(_mean, _logvar)
+        test_loss /= len(test_loader)
+        print(f"Epoch {epoch+1}/{epochs} test loss: {test_loss.item()}")
+
+    # Plot some reconstructed images from the test set
+    with torch.no_grad():
+        for batch in test_loader:
+            recon_batch, _, _ = vae_model(batch)
+            PlotReconstructions(batch, recon_batch)
+            break
 
     print(f"Epoch {epoch+1}/{epochs} completed. Loss: {loss.item()}")
 

@@ -51,3 +51,27 @@ def GetFaceDataLoader(batch_size=32, shuffle=True, num_workers=0):
         shuffle=shuffle,
         num_workers=num_workers
     )
+
+def GetFaceTrainTestDataLoaders(train_size, test_size, batch_size=32, shuffle=True, num_workers=0):
+    dataset = FaceDataset("data")
+    remainder = len(dataset) - train_size - test_size
+    if remainder < 0:
+        raise ValueError(
+            f"train_size + test_size ({train_size + test_size}) exceeds dataset size ({len(dataset)})"
+        )
+    train_dataset, test_dataset, _ = torch.utils.data.random_split(
+        dataset, [train_size, test_size, remainder]
+    )
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers
+    )
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers
+    )
+    return train_loader, test_loader
