@@ -13,15 +13,15 @@ print(f"Using device: {device}")
 # Params
 
 epochs = 10
-kernel_size = 16
+kernel_size = 32
 hidden_layer = 128
-latent_dim = 128
+latent_dim = 256
 batch_size = 32
-
+kl_weight = 0.0005
 
 # Loading Data
 
-train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*100, test_size=batch_size*20, batch_size=batch_size)
+train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*50, test_size=batch_size*10, batch_size=batch_size)
 
 # Train set, Test set split
 
@@ -49,7 +49,7 @@ for epoch in range(epochs):
     for batch in train_loader:
         optimizer.zero_grad()
         recon_batch, _mean, _logvar = vae_model(batch)
-        loss = loss_func(recon_batch, batch) + KL(_mean, _logvar)
+        loss = loss_func(recon_batch, batch) + kl_weight *KL(_mean, _logvar)
         loss.backward()
         optimizer.step()
 
@@ -62,7 +62,7 @@ for epoch in range(epochs):
         test_loss = 0
         for batch in test_loader:
             recon_batch, _mean, _logvar = vae_model(batch)
-            test_loss += loss_func(recon_batch, batch) + KL(_mean, _logvar)
+            test_loss += loss_func(recon_batch, batch) + kl_weight * KL(_mean, _logvar)
         test_loss /= len(test_loader)
         print(f"Epoch {epoch+1}/{epochs} test loss: {test_loss.item()}")
 

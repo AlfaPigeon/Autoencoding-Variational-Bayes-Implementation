@@ -7,8 +7,11 @@ def KL(_mean, _logvar):
 def PlotReconstructions(batch, recon_batch, n=8):
     fig, axes = plt.subplots(2, n, figsize=(2 * n, 4))
     for i in range(n):
-        axes[0, i].imshow(batch[i].permute(1, 2, 0) * 0.5 + 0.5)
+        # Removed the un-normalization math
+        axes[0, i].imshow(batch[i].cpu().permute(1, 2, 0))
         axes[0, i].axis('off')
-        axes[1, i].imshow(recon_batch[i].permute(1, 2, 0) * 0.5 + 0.5)
+        
+        # Added detach().cpu() so Matplotlib can read GPU tensors
+        axes[1, i].imshow(recon_batch[i].detach().cpu().permute(1, 2, 0))
         axes[1, i].axis('off')
     plt.show()

@@ -1,1 +1,5 @@
-from https://huggingface.co/datasets/Mayank022/Cropped_Face_Dataset_128x128 I Fetched a dataset
+- from https://huggingface.co/datasets/Mayank022/Cropped_Face_Dataset_128x128 I Fetched a dataset
+- Dataset normalization was wrong
+- Single FC layer makes static images, I used transconv
+- I ran into large learning rate problem
+- I ran into large KL overpowering the loss problem (It optimized for the normal distribution)
