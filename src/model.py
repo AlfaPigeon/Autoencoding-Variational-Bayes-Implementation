@@ -11,19 +11,30 @@ class VAE(nn.Module):
         self.input_dim2 = input_dim2
 
         # Shape Calculatios===
-        self.conv_out_size = input_dim2 - kernel_size + 1
+        self.conv_out_size = (input_dim2 - kernel_size) // 2 + 1
         self.flattened_dim = self.conv_out_size * self.conv_out_size * hidden_dim 
         self.hidden_dim = hidden_dim
         # ====================
 
-        self.conv_encode = nn.Conv2d(input_dim1, hidden_dim, kernel_size=kernel_size)
-        self.flatten = nn.Flatten()
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Conv2d(input_dim1, hidden_dim, kernel_size=kernel_size, stride=2),
+            nn.ReLU(),
+            nn.Flatten()
+        )
+
+        # Latent space
         self.fc_mean = nn.Linear(self.flattened_dim, latent_dim)
         self.fc_logvar = nn.Linear(self.flattened_dim, latent_dim)
-        self.fc_z = nn.Linear(latent_dim, self.flattened_dim)
-        self.trans_conv = nn.ConvTranspose2d(hidden_dim, input_dim1, kernel_size=kernel_size)
-        self.fc_decode1 = nn.Linear(self.flattened_dim, self.hidden_dim)
-        self.fc_decode2 = nn.Linear(self.hidden_dim, self.flattened_dim)
+
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, self.flattened_dim),
+            nn.ReLU(),
+            nn.Unflatten(1, (hidden_dim, self.conv_out_size, self.conv_out_size)),
+            nn.ConvTranspose2d(hidden_dim, input_dim1, kernel_size=kernel_size, stride=2),
+            nn.Sigmoid()
+        )
 
     def reparameterize(self, _mean, _logvar):
         std = torch.exp(0.5*_logvar)
@@ -31,28 +42,12 @@ class VAE(nn.Module):
         return _mean + e*std
 
     def decode(self, z):
-
-        hidden = torch.relu(self.fc_z(z))
-        
-        # Reshape into 4d        
-
-        #recon = recon.view(-1, self.input_dim1, self.input_dim2, self.input_dim2)
-
-        hidden = torch.relu(self.fc_decode1(hidden))
-        hidden = torch.relu(self.fc_decode2(hidden))
-
-        hidden = hidden.view(-1, self.hidden_dim, self.conv_out_size, self.conv_out_size)
-
-        recon = self.trans_conv(hidden)
-        recon = torch.sigmoid(recon)
+        recon = self.decoder(z)
         return recon
         
     def encode(self, x):
-        h1 = torch.relu(
-            self.conv_encode(x)
-        )
-        flat_h1 =  self.flatten(h1)
-        return self.fc_mean(flat_h1), self.fc_logvar(flat_h1)
+        _encoded = self.encoder(x)
+        return self.fc_mean(_encoded), self.fc_logvar(_encoded)
 
     @torch.no_grad()
     def generate(self, z):

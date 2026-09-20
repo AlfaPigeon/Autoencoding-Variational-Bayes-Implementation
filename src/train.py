@@ -4,6 +4,7 @@ from model import VAE
 from data import GetFaceDataLoader, GetFaceTrainTestDataLoaders
 from torchinfo import summary
 
+torch.manual_seed(123897128937)
 
 # Device
 
@@ -14,26 +15,18 @@ print(f"Using device: {device}")
 
 epochs = 10
 kernel_size = 32
-hidden_layer = 64
-latent_dim = 64
+hidden_layer = 128
+latent_dim = 128
 batch_size = 32
-kl_weight = 0.01
+kl_weight = 0.0001
 
 # Loading Data
 
-train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*10, test_size=batch_size*2, batch_size=batch_size)
+train_loader, test_loader = GetFaceTrainTestDataLoaders(train_size=batch_size*100, test_size=batch_size*20, batch_size=batch_size)
 
 # Train set, Test set split
 
-
-
-# [32, 3, 128, 128]
-
-
-
-# Model
-
-vae_model = VAE(3, 128, hidden_dim=hidden_layer, kernel_size=kernel_size, latent_dim=latent_dim)
+vae_model = VAE(3, 128, hidden_dim=hidden_layer, kernel_size=kernel_size, latent_dim=latent_dim).to(device)
 
 optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-4)
 
@@ -47,6 +40,7 @@ print("Starting training...")
 for epoch in range(epochs):
     batch_index = 0
     for batch in train_loader:
+        batch = batch.to(device)
         optimizer.zero_grad()
         recon_batch, _mean, _logvar = vae_model(batch)
         loss = loss_func(recon_batch, batch) + kl_weight *KL(_mean, _logvar)
@@ -61,6 +55,7 @@ for epoch in range(epochs):
     with torch.no_grad():
         test_loss = 0
         for batch in test_loader:
+            batch = batch.to(device)
             recon_batch, _mean, _logvar = vae_model(batch)
             test_loss += loss_func(recon_batch, batch) + kl_weight * KL(_mean, _logvar)
         test_loss /= len(test_loader)
@@ -69,6 +64,7 @@ for epoch in range(epochs):
     # Plot some reconstructed images from the test set
     with torch.no_grad():
         for batch in test_loader:
+            batch = batch.to(device)
             recon_batch, _, _ = vae_model(batch)
             PlotReconstructions(batch, recon_batch)
             break

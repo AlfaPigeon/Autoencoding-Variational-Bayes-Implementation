@@ -3,3 +3,4 @@
 - Single FC layer makes static images, I used transconv
 - I ran into large learning rate problem
 - I ran into large KL overpowering the loss problem (It optimized for the normal distribution)
+- Playing with stride lowered the parameters, increased latent space size, lowered kernel size, the model produced actual faces

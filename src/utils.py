@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 
 def KL(_mean, _logvar):
-    return -0.5 * torch.sum(1 + _logvar - _mean.pow(2) - _logvar.exp())
+    return -0.5 * torch.mean(1 + _logvar - _mean.pow(2) - _logvar.exp())
 
 def PlotReconstructions(batch, recon_batch, n=8):
     fig, axes = plt.subplots(2, n, figsize=(2 * n, 4))
