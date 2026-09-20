@@ -31,7 +31,7 @@ data_loader = GetFaceDataLoader(batch_size=batch_size)
 
 vae_model = VAE(3, 128, hidden_dim=hidden_layer, kernel_size=kernel_size, latent_dim=latent_dim)
 
-optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(vae_model.parameters(), lr=1e-5)
 
 loss_func = torch.nn.MSELoss()
 

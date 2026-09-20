@@ -16,8 +16,6 @@ class VAE(nn.Module):
         self.hidden_dim = hidden_dim
         # ====================
 
-        print("Flattened Dim: ", self.flattened_dim)
-
         self.conv_encode = nn.Conv2d(input_dim1, hidden_dim, kernel_size=kernel_size)
         self.flatten = nn.Flatten()
         self.fc_mean = nn.Linear(self.flattened_dim, latent_dim)
@@ -33,10 +31,7 @@ class VAE(nn.Module):
         recon = torch.sigmoid(
             self.fc_z(z)
         )
-        # Reshape into 4d
-
-        print(recon.shape)
-        
+        # Reshape into 4d        
 
         recon = recon.view(-1, self.input_dim1, self.input_dim2, self.input_dim2)
         return recon
@@ -45,9 +40,7 @@ class VAE(nn.Module):
         h1 = torch.relu(
             self.conv_encode(x)
         )
-        print("Conv_Output_Shape: ", h1.shape)
         flat_h1 =  self.flatten(h1)
-        print("Flat_Shape: ",flat_h1.shape)
         return self.fc_mean(flat_h1), self.fc_logvar(flat_h1)
 
     @torch.no_grad()
@@ -60,19 +53,3 @@ class VAE(nn.Module):
         return self.decode(z), mean, log_var
 
 
-'''
-
-Flattened Dim:  76832
-VAE(
-  (conv_encode): Conv2d(3, 32, kernel_size=(32, 32), stride=(1, 1))
-  (flatten): Flatten(start_dim=1, end_dim=-1)
-  (fc_mean): Linear(in_features=76832, out_features=128, bias=True)
-  (fc_logvar): Linear(in_features=76832, out_features=128, bias=True)
-  (fc_z): Linear(in_features=128, out_features=3, bias=True)
-)
-Conv_Output_Shape:  torch.Size([32, 32, 97, 97])
-Flat_Shape:  torch.Size([32, 301088])
-
-RuntimeError: Failed to run torchinfo. See above stack traces for more details. Executed layers up to: [Conv2d: 1, Flatten: 1]
-
-'''
